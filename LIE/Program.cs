@@ -14,9 +14,12 @@ namespace LIE {
             var densities = QuadratureMethod ( );
             Console.WriteLine ( densities );
 
+            for(int i =1; i<n;i++ ) {
+                Console.WriteLine ( $"Exact: {GetExactResult (  Z( S(i) )) } ----- Approximate {GetApproximateResult ( densities, Z ( S ( i ) ) )}" );
+            }
+
             Console.ReadKey ( );
         }
-
 
         static Vector<double> QuadratureMethod ( ) {
             var matrix = Matrix<double>.Build.Dense ( ( int ) n - 1, ( int ) n - 1 );
@@ -24,9 +27,9 @@ namespace LIE {
 
             for (int k = 1;k<n;k++ ) {
                 for(int i = 1;i<n;i++ ) {
-                    matrix[k - 1, i - 1] = GetQuadratureR ( Math.Abs ( i - k ) ) + GetQuadratureR ( i + k ) + 1 / n * GetL2 ( GetSi ( k ), GetSi ( i ) );
+                    matrix[k - 1, i - 1] = GetQuadratureR ( Math.Abs ( i - k ) ) + GetQuadratureR ( i + k ) + 1 / n * GetL2 ( S ( k ), S ( i ) );
                 }
-                b[k - 1] = GetFunction ( GetSi ( k ) );
+                b[k - 1] = GetFunction ( S ( k ) );
             }
 
             Console.WriteLine ( matrix );
@@ -34,18 +37,22 @@ namespace LIE {
             return matrix.Solve ( b );
         }
 
-
-
         //Uex = x1^2 - x2^2
-        static double GetExactResult (double t ) {
+        static double GetExactResult (double x1 ) {
             return Math.Pow ( GetX1 ( t ), 2 ) - Math.Pow ( GetX2 ( t ), 2 );
         }
 
-        //static double GetApproximateResult(double t ) {
+        static double GetApproximateResult ( Vector<double> densities, double t ) {
+            double result = 0;
 
-        //}
+            for(int k = 1; k<n;k++ ) {
+                result += densities[k - 1] * Math.Log ( t - Z ( S ( k ) ) );
+            }
 
-        static double GetSi ( double j ) {
+            return result * -1 / ( 2 * n );
+        }
+
+        static double S ( double j ) {
             return j * PI / n;
         }
 
@@ -57,7 +64,7 @@ namespace LIE {
             r += 1;
 
             for ( double m = 1; m < n - 1; m++ ) {
-                r += 2 / m * Math.Cos ( m * GetSi ( j ) );
+                r += 2 / m * Math.Cos ( m * S ( j ) );
             }
 
             r += Math.Pow ( -1, j ) / Math.Pow ( n, 2 );
@@ -70,12 +77,27 @@ namespace LIE {
             return Math.Cos ( GetX1 ( s ) + GetX2 ( s ) );
         }
 
+        static double Z ( double s ) {
+            if ( s <= PI ) {
+                return Y ( s );
+            }
+            return PI + Y ( 2 * PI - s );
+        }
+
+        static double Y ( double s ) {
+
+            if ( s <= PI ) {
+                return W ( s );
+            }
+            return PI + W ( s - PI );
+        }
+
         static double V ( double s ) {
-            return ( 1 / q - PI ) * Math.Pow ( ( PI - s ) / PI, 3 ) - 1 / q * ( PI - s ) / PI + PI;
+            return ( 1 / q - PI / 2 ) * Math.Pow ( ( PI - 2*s ) / PI, 3 ) - 1 / q * ( PI - 2*s ) / PI + PI/2;
         }
 
         static double W ( double s ) {
-            return 2 * PI * Math.Pow ( V ( s ), q ) / ( Math.Pow ( V ( s ), q ) + Math.Pow ( V ( 2 * PI - s ), q ) );
+            return PI * Math.Pow ( V ( s ), q ) / ( Math.Pow ( V ( s ), q ) + Math.Pow ( V ( PI - s ), q ) );
         }
 
         //EXAMPLE
