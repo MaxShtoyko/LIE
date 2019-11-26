@@ -1,1 +1,39 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\title{LIE}
+\author{}
+\date{November 2019}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+
+Для чисельного розв'язування інтегрального рівняння , ми використовуємо квадратури Аткінсона. Введемо рівномірну сітку
+
+\begin{equation}
+    s_k = \frac{k \pi}{n}, \quad k=0, \dots, 2n-1
+\end{equation}
+
+для цієї сітки вважаємо наступних два тригонометричних квадратурних правила:
+
+\begin{equation}
+\frac{1}{2\pi} \int_{0}^{2\pi} f(\sigma) \ln \left( \frac{4}{e} sin^2 \frac{s_i- \sigma}{2}\right) d\sigma \approx \sum_{k=0}^{2n-1} R_{| k- i |} f(s_k),
+\end{equation}
+
+\begin{equation}
+    \frac{1}{2\pi} \int_{0}^{2\pi} f(s)ds \approx \frac{1}{2n} \sum_{k=0}^{2n} f(s_k),
+\end{equation}
+
+з вагами
+
+\begin{equation*}
+    R_j = - \frac{1}{n} \left( 1 + 2 \sum_{m=1}^{n-1}  \frac{1}{m} cos\frac{mj\pi}{n} + \frac{(-1)^j}{n^2}  \right), \quad j=0, \dots, 2n-1.
+\end{equation*}
+
+\end{document}
 
