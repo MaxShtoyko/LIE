@@ -14,8 +14,10 @@ namespace LIE {
             var densities = QuadratureMethod ( );
             Console.WriteLine ( densities );
 
+            Console.WriteLine ( GetExactResult ( new double[] { 1.3, 1.2 }, new double[] { 6.6, 6.6 } ) );
+
             for(int i =1; i<n;i++ ) {
-                Console.WriteLine ( $"Exact: {GetExactResult (  Z( S(i) )) } ----- Approximate {GetApproximateResult ( densities, Z ( S ( i ) ) )}" );
+               // Console.WriteLine ( $"Exact: {GetExactResult (  Z( S(i) )) } ----- Approximate {GetApproximateResult ( densities, Z ( S ( i ) ) )}" );
             }
 
             Console.ReadKey ( );
@@ -37,9 +39,9 @@ namespace LIE {
             return matrix.Solve ( b );
         }
 
-        //Uex = x1^2 - x2^2
-        static double GetExactResult (double x1 ) {
-            return Math.Pow ( GetX1 ( t ), 2 ) - Math.Pow ( GetX2 ( t ), 2 );
+        //Uex = Ф(x,y*)
+        static double GetExactResult (double[] x, double[] y ) {
+            return 1 / ( 2 * PI ) * Math.Log ( 1 / GetR ( x, y ) );
         }
 
         static double GetApproximateResult ( Vector<double> densities, double t ) {
@@ -56,7 +58,6 @@ namespace LIE {
             return j * PI / n;
         }
 
-        // Ri(s) = -1/2 { ... }
         static double GetQuadratureR ( double j ) {
 
             double r = 0;
@@ -121,8 +122,12 @@ namespace LIE {
         }
 
         // |x(s)-x(tau)|
-        static double GetR(double s, double tau ) {
+        static double GetParametricR ( double s, double tau ) {
             return Math.Sqrt ( Math.Pow ( ( GetX1 ( s ) - GetX1 ( tau ) ), 2 ) + Math.Pow ( ( GetX2 ( s ) - GetX2 ( tau ) ), 2 ) );
+        }
+
+        static double GetR ( double[] s, double[] tau ) {
+            return Math.Sqrt ( Math.Pow ( s[0] - tau[0], 2 ) + Math.Pow ( s[1] - tau[1], 2 ) );
         }
 
         // |x'(s)|
@@ -142,7 +147,7 @@ namespace LIE {
             if ( s - tau < 0.0001 ) {
                 return 1 / 2 * Math.Log ( ( 4 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( s ) ) );
             }
-            return 1 / 2 * Math.Log ( ( 4 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * Math.Pow ( GetR ( s, tau ), 2 ) ) );
+            return 1 / 2 * Math.Log ( ( 4 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * Math.Pow ( GetParametricR ( s, tau ), 2 ) ) );
         }
 
         static double GetL1 ( double s, double tau ) {
