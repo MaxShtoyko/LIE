@@ -6,16 +6,15 @@ using MathNet.Numerics.LinearAlgebra.Double;
 namespace LIE {
     class Program {
         static double PI = Math.PI;
-        static double q = 5;
-        static double n = 4;
+        static double q = 7;
+        static double n = 6;
 
         static void Main ( string[] args ) {
 
             var densities = QuadratureMethod ( );
             Console.WriteLine ( densities );
 
-            Console.WriteLine ( GetExactResult ( new double[] { 1.3, 1.2 }, new double[] { 6.6, 6.6 } ) );
-
+            Console.WriteLine ( GetApproximateResult ( densities, Vector.Build.DenseOfArray ( new double[] { 0, 0 } ) ) );
             for(int i =1; i<n;i++ ) {
                // Console.WriteLine ( $"Exact: {GetExactResult (  Z( S(i) )) } ----- Approximate {GetApproximateResult ( densities, Z ( S ( i ) ) )}" );
             }
@@ -31,7 +30,7 @@ namespace LIE {
                 for(int i = 1;i<n;i++ ) {
                     matrix[k - 1, i - 1] = GetQuadratureR ( Math.Abs ( i - k ) ) + GetQuadratureR ( i + k ) + 1 / n * GetL2 ( S ( k ), S ( i ) );
                 }
-                b[k - 1] = GetFunction ( S ( k ) );
+                b[k - 1] = GetFunction ( );
             }
 
             Console.WriteLine ( matrix );
@@ -40,15 +39,23 @@ namespace LIE {
         }
 
         //Uex = Ф(x,y*)
-        static double GetExactResult (double[] x, double[] y ) {
-            return 1 / ( 2 * PI ) * Math.Log ( 1 / GetR ( x, y ) );
+        //static double GetExactResult (double[] x, double[] y ) {
+        //    return 1 / ( 2 * PI ) * Math.Log ( 1 / GetR ( x, y ) );
+        //}
+
+        static double GetExactResult ( double[] x, double[] y ) {
+            return 1;
         }
 
-        static double GetApproximateResult ( Vector<double> densities, double t ) {
+        static double GetFunction () {
+            return 1;
+        }
+
+        static double GetApproximateResult ( Vector<double> densities, Vector<double> t ) {
             double result = 0;
 
             for(int k = 1; k<n;k++ ) {
-                result += densities[k - 1] * Math.Log ( t - Z ( S ( k ) ) );
+                result += densities[k - 1] * Math.Log ( GetR ( t - Z ( S ( k ) ) ) );
             }
 
             return result * -1 / ( 2 * n );
@@ -73,20 +80,12 @@ namespace LIE {
             return r * -1 / n;
         }
 
-        //f 
-        static double GetFunction (double s ) {
-            return Math.Cos ( GetX1 ( s ) + GetX2 ( s ) );
-        }
 
-        static double Z ( double s ) {
-            if ( s <= PI ) {
-                return Y ( s );
-            }
-            return PI + Y ( 2 * PI - s );
+        static Vector<double> Z ( double s ) {
+            return GetBoudaryFunction ( Y ( s ) );
         }
 
         static double Y ( double s ) {
-
             if ( s <= PI ) {
                 return W ( s );
             }
@@ -94,7 +93,7 @@ namespace LIE {
         }
 
         static double V ( double s ) {
-            return ( 1 / q - PI / 2 ) * Math.Pow ( ( PI - 2*s ) / PI, 3 ) - 1 / q * ( PI - 2*s ) / PI + PI/2;
+            return ( 1 / q - PI / 2 ) * Math.Pow ( ( PI - 2 * s ) / PI, 3 ) - 1 / q * ( PI - 2 * s ) / PI + PI / 2;
         }
 
         static double W ( double s ) {
@@ -126,6 +125,10 @@ namespace LIE {
             return Math.Sqrt ( Math.Pow ( ( GetX1 ( s ) - GetX1 ( tau ) ), 2 ) + Math.Pow ( ( GetX2 ( s ) - GetX2 ( tau ) ), 2 ) );
         }
 
+        static double GetR ( Vector<double> s ) {
+            return Math.Sqrt ( Math.Pow ( s[0], 2 ) + Math.Pow ( s[1], 2 ) );
+        }
+
         static double GetR ( double[] s, double[] tau ) {
             return Math.Sqrt ( Math.Pow ( s[0] - tau[0], 2 ) + Math.Pow ( s[1] - tau[1], 2 ) );
         }
@@ -135,7 +138,7 @@ namespace LIE {
             return Math.Sqrt ( Math.Pow ( GetDerivativeOfX1 ( s ), 2 ) + Math.Pow ( GetDerivativeOfX2 ( s ), 2 ) );
         }
 
-        static Vector<double> GetParametricFunction (double t) {
+        static Vector<double> GetBoudaryFunction (double t) {
             return Vector.Build.DenseOfArray ( new[] { GetX1 ( t ), GetX2 ( t ) } );
         }
 
