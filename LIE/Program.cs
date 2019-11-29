@@ -38,11 +38,6 @@ namespace LIE {
             return matrix.Solve ( b );
         }
 
-        //Uex = Ф(x,y*)
-        //static double GetExactResult (double[] x, double[] y ) {
-        //    return 1 / ( 2 * PI ) * Math.Log ( 1 / GetR ( x, y ) );
-        //}
-
         static double GetExactResult ( double[] x, double[] y ) {
             return 1;
         }
@@ -79,6 +74,19 @@ namespace LIE {
 
             return r * -1 / n;
         }
+
+        //static double GetQuadratureR ( double j ) {
+
+        //    double r = 0;
+
+        //    for ( double m = 1; m < n - 1; m++ ) {
+        //        r += 1 / m * Math.Cos ( m * S ( j ) );
+        //    }
+
+        //    r += Math.Pow ( -1, j ) / ( 2 * n );
+
+        //    return r * -1 / n;
+        //}
 
 
         static Vector<double> Z ( double s ) {
@@ -120,22 +128,19 @@ namespace LIE {
             return Math.Cos ( t / 2 );
         }
 
-        // |x(s)-x(tau)|
-        static double GetParametricR ( double s, double tau ) {
-            return Math.Sqrt ( Math.Pow ( ( GetX1 ( s ) - GetX1 ( tau ) ), 2 ) + Math.Pow ( ( GetX2 ( s ) - GetX2 ( tau ) ), 2 ) );
-        }
-
+        // |x(s)|
         static double GetR ( Vector<double> s ) {
             return Math.Sqrt ( Math.Pow ( s[0], 2 ) + Math.Pow ( s[1], 2 ) );
         }
 
-        static double GetR ( double[] s, double[] tau ) {
+        // |x(s)-x(tau)|
+        static double GetR ( Vector<double> s, Vector<double> tau ) {
             return Math.Sqrt ( Math.Pow ( s[0] - tau[0], 2 ) + Math.Pow ( s[1] - tau[1], 2 ) );
         }
 
         // |x'(s)|
-        static double GetDerivativeOfR ( double s ) {
-            return Math.Sqrt ( Math.Pow ( GetDerivativeOfX1 ( s ), 2 ) + Math.Pow ( GetDerivativeOfX2 ( s ), 2 ) );
+        static double GetDerivativeOfR ( Vector<double> s ) {
+            return Math.Sqrt ( Math.Pow ( GetDerivativeOfX1 ( s[0] ), 2 ) + Math.Pow ( GetDerivativeOfX2 ( s[1] ), 2 ) );
         }
 
         static Vector<double> GetBoudaryFunction (double t) {
@@ -148,9 +153,9 @@ namespace LIE {
 
         static double GetL2 (double s, double tau ) {
             if ( s - tau < 0.0001 ) {
-                return 1 / 2 * Math.Log ( ( 4 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( s ) ) );
+                return 1 / 2 * Math.Log ( ( 2 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
             }
-            return 1 / 2 * Math.Log ( ( 4 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * Math.Pow ( GetParametricR ( s, tau ), 2 ) ) );
+            return 1 / 2 * Math.Log ( ( 2 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetR ( Z(s), Z(tau)) ) );
         }
 
         static double GetL1 ( double s, double tau ) {
