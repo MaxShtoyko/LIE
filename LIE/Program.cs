@@ -5,26 +5,31 @@ using MathNet.Numerics.LinearAlgebra.Double;
 namespace LIE {
     class Program {
         static double PI = Math.PI;
-        static double n = 128;
-        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 3,3 } );
+        static double n = 8;
+        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] {3,3 } );
 
         static void Main ( string[] args ) {
 
-            var densities = QuadratureMethod ( );
-            Console.WriteLine ( densities );
-
             double generalError = 0;
-            for(int i = 1; i < n;i++ ) {
-                var x1 = 2*i/n;
-                var x2 =2*i/n;
-                var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
-                var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
-                generalError += Math.Abs ( error );
 
-                Console.WriteLine ( $"Exact: {GetExactResult ( point ) } ----- Approximate {GetApproximateResult ( densities, point )}" );
-                Console.WriteLine ( $"(x1,x2) =({Math.Round(x1,4)},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
+            for( int j = 0;j<5;j++ ) {
+                n *= 2;
+
+                var densities = QuadratureMethod ( );
+
+                for ( int i = 1; i < n; i++ ) {
+                    var x1 = 2 * i / n;
+                    var x2 = 2 * i / n;
+                    var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
+                    var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
+                    generalError += Math.Abs ( error );
+
+                    //Console.WriteLine ( $"Exact: {GetExactResult ( point ) } ----- Approximate {GetApproximateResult ( densities, point )}" );
+                    //Console.WriteLine ( $"(x1,x2) =({Math.Round ( x1, 4 )},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
+                }
+
+                Console.WriteLine ( $"n={n}, error={generalError / n}" );
             }
-            Console.WriteLine ( generalError / n );
 
             Console.ReadKey ( );
         }
@@ -35,46 +40,28 @@ namespace LIE {
 
             for ( int k = 1; k < n; k++ ) {
                 for ( int i = 1; i < n; i++ ) {
-                    matrix[k - 1, i - 1] = GetL1 ( ) * GetQuadratureR ( i ) + 1 /(2*PI) * GetL2 ( S ( k ), S ( i ) );
+                    matrix[k-1, i-1] = GetL1 ( ) * R ( S ( k ), i ) + 1 / ( 2 * n ) * GetL2 ( S ( k ), S ( i ) );
                 }
                 b[k - 1] = GetParametricFunction ( S ( k ) );
             }
 
-            Console.WriteLine ( matrix );
-
             return matrix.Solve ( b );
         }
 
-        //static double R ( double t, int j ) {
+        static double R ( double t, int j ) {
 
-        //    double r = 0;
+            double r = 0;
 
-        //    r += 1;
+            r += 1;
 
-        //    for ( double m = 1; m < n; m++ ) {
-        //        r += 2.0 / m * Math.Cos ( m * ( t - S ( j ) ) );
-        //    }
+            for ( double m = 1; m < n; m++ ) {
+                r += 2.0 / m * Math.Cos ( m * ( t - S ( j ) ) );
+            }
 
-        //    r += Math.Cos ( n * ( t - S ( j ) ) )/ n;
+            r += Math.Cos ( n * ( t - S ( j ) ) ) / n;
 
-        //    return (r * -0.5) / n;
-        //}
-
-        //static Vector<double> QuadratureMethod ( ) {
-        //    var matrix = Matrix<double>.Build.Dense ( ( int ) n - 1, ( int ) n - 1 );
-        //    var b = Vector<double>.Build.Dense ( ( int ) n - 1 );
-
-        //    for (int k = 1;k<n;k++ ) {
-        //        for(int i = 1;i<n; i++ ) {
-        //            matrix[k - 1, i - 1] = GetQuadratureR ( Math.Abs ( i - k ) ) + GetQuadratureR ( i + k ) + 1 / n * B ( S ( k ), S ( i ) );
-        //        }
-        //        b[k - 1] = 2*GetParametricFunction ( S ( k ) );
-        //    }
-
-        //    Console.WriteLine ( matrix );
-
-        //    return matrix.Solve ( b );
-        //}
+            return ( r * -0.5 ) / n;
+        }
 
         //static double GetExactResult ( Vector<double> x ) {
         //    return 1;
@@ -110,44 +97,9 @@ namespace LIE {
             return (j * PI) / n;
         }
 
-        static double GetQuadratureR ( double j ) {
-
-            double r = 0;
-
-            r += 1;
-
-            for ( double m = 1; m < n; m++ ) {
-                r += 2.0 / m * Math.Cos ( m * S ( j ) );
-            }
-
-            r += Math.Pow ( -1, j ) / Math.Pow ( n, 2 );
-
-            return r * -1.0 / n;
-        }
-
         static Vector<double> Z ( double s ) {
             return GetBoudaryFunction ( ParametrizationHelper.Y ( s ) );
         }
-
-        //EXAMPLE
-        //static double GetX1 ( double t ) {
-        //    return Math.Sin ( t / 2 );
-        //}
-
-        ////EXAMPLE
-        //static double GetX2 ( double t ) {
-        //    return Math.Sin ( t );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX1 ( double t ) {
-        //    return 1 / 2 * Math.Cos ( t / 2 );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX2 ( double t ) {
-        //    return Math.Cos ( t );
-        //}
 
         //EXAMPLE
         static double GetX1 ( double t ) {
@@ -189,18 +141,18 @@ namespace LIE {
 
         static double GetL2 (double s, double tau ) {
             if ( Math.Abs ( s - tau ) < 0.00001 ) {
-                return 0.5 * Math.Log ( ( Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
+                return 0.5 * Math.Log (  2*( Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
             }
 
-            var v = 4 * Math.Pow ( Math.Sin ( ( tau - s ) / 2 ), 2 );
+            var v =  4*Math.Pow ( Math.Sin ( ( tau - s ) / 2 ), 2 );
             var vv = Math.E * Math.Pow ( GetR ( Z ( s ) - Z ( tau ) ), 2 );
 
             return 0.5 * Math.Log ( v / vv );
         }
 
-        static double B(double s, double tau ) {
+        static double B ( double s, double tau ) {
             if ( Math.Abs ( s - tau ) < 0.00001 ) {
-                return Math.Log ( ( 2 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
+                return 0.5* Math.Log ( ( 2 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
             }
 
             var v = 2 * Math.Abs ( Math.Cos ( s ) - Math.Cos ( tau ) );
@@ -212,5 +164,66 @@ namespace LIE {
         static double GetL1 (  ) {
             return -0.5;
         }
+
+        //static Vector<double> QuadratureMethod ( ) {
+        //    var matrix = Matrix<double>.Build.Dense ( ( int ) n - 1, ( int ) n - 1 );
+        //    var b = Vector<double>.Build.Dense ( ( int ) n - 1 );
+
+        //    for (int k = 1;k<n;k++ ) {
+        //        for(int i = 1;i<n; i++ ) {
+        //            matrix[k - 1, i - 1] = GetQuadratureR ( Math.Abs ( i - k ) ) + GetQuadratureR ( i + k ) + 1 / n * B ( S ( k ), S ( i ) );
+        //        }
+        //        b[k - 1] = 2*GetParametricFunction ( S ( k ) );
+        //    }
+
+        //    Console.WriteLine ( matrix );
+
+        //    return matrix.Solve ( b );
+        //}
+
+        //static double GetQuadratureR ( double j ) {
+
+        //    double r = 0;
+
+        //    r += 1;
+
+        //    for ( double m = 1; m < n; m++ ) {
+        //        r += 2.0 / m * Math.Cos ( m * S ( j ) );
+        //    }
+
+        //    r += Math.Pow ( -1, j ) / Math.Pow ( n, 2 );
+
+        //    return r * -1.0 / n;
+        //}
+
+        //static double GetX1 ( double t ) {
+        //    return Math.Sin ( t / 2 );
+        //}
+
+        ////EXAMPLE
+        //static double GetX2 ( double t ) {
+        //    return Math.Sin ( t );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX1 ( double t ) {
+        //    return 1 / 2 * Math.Cos ( t / 2 );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX2 ( double t ) {
+        //    return Math.Cos ( t );
+        //}
+
+        //static double B(double s, double tau ) {
+        //    if ( Math.Abs ( s - tau ) < 0.00001 ) {
+        //        return Math.Log ( ( 2 * Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
+        //    }
+
+        //    var v = 2 * Math.Abs ( Math.Cos ( s ) - Math.Cos ( tau ) );
+        //    var vv = ( Math.E * GetR ( Z ( s ) - Z ( tau ) ) );
+
+        //    return Math.Log ( v / vv );
+        //}
     }
 }
