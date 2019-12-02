@@ -1,7 +1,7 @@
 ﻿using System;
 namespace LIE {
     public class ParametrizationHelper {
-        static double q = 3;
+        static double q = 2;
         static double PI = Math.PI;
 
         public static double Y ( double s ) {
