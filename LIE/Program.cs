@@ -5,14 +5,14 @@ using MathNet.Numerics.LinearAlgebra.Double;
 namespace LIE {
     class Program {
         static double PI = Math.PI;
-        static double n = 8;
-        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] {3,3 } );
+        static double n = 4;
+        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 3, 3 } );
 
         static void Main ( string[] args ) {
 
             double generalError = 0;
 
-            for( int j = 0;j<5;j++ ) {
+            for ( int j = 0; j < 6; j++ ) {
                 n *= 2;
 
                 var densities = QuadratureMethod ( );
@@ -29,6 +29,8 @@ namespace LIE {
                 }
 
                 Console.WriteLine ( $"n={n}, error={generalError / n}" );
+
+                generalError = 0;
             }
 
             Console.ReadKey ( );
@@ -62,14 +64,6 @@ namespace LIE {
 
             return ( r * -0.5 ) / n;
         }
-
-        //static double GetExactResult ( Vector<double> x ) {
-        //    return 1;
-        //}
-
-        //static double GetFunction ( Vector<double> x ) {
-        //    return 1;
-        //}
 
         static double GetExactResult ( Vector<double> x ) {
             return 1 / ( 2 * PI ) * Math.Log ( 1 / ( GetR ( x - y ) ) );
@@ -135,16 +129,13 @@ namespace LIE {
             return Vector.Build.DenseOfArray ( new[] { GetX1 ( t ), GetX2 ( t ) } );
         }
 
-        static double GetL(double s, double tau ) {
-            return GetL1 ( ) * Math.Log ( 4.0 / Math.E * Math.Pow ( Math.Sin ( ( s - tau ) / 2.0 ), 2 ) ) + GetL2 ( s, tau );
-        }
 
-        static double GetL2 (double s, double tau ) {
+        static double GetL2 ( double s, double tau ) {
             if ( Math.Abs ( s - tau ) < 0.00001 ) {
-                return 0.5 * Math.Log (  2*( Math.Abs ( Math.Sin ( s ) ) ) / ( Math.E * GetDerivativeOfR ( Z ( s ) ) ) );
+                return 0.5 * Math.Log ( 2* Math.Abs ( Math.Sin ( s ) ) / ( Math.E * Math.Pow ( GetDerivativeOfR ( Z ( s ) ), 2 ) ) );
             }
 
-            var v =  4*Math.Pow ( Math.Sin ( ( tau - s ) / 2 ), 2 );
+            var v = 4 * Math.Pow ( Math.Sin ( ( tau - s ) / 2 ), 2 );
             var vv = Math.E * Math.Pow ( GetR ( Z ( s ) - Z ( tau ) ), 2 );
 
             return 0.5 * Math.Log ( v / vv );
