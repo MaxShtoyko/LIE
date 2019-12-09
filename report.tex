@@ -13,6 +13,100 @@
 
 \begin{document}
 
+Нехай  $D - R^2$  - деяка обмежена область з границею $\partial D$, що складається з дуги $\Gamma \in C^2$ і кутової точки $P$ з внутрішнім кутом $\Theta \in (0, 2\pi)$. У цій точці вектор нормалі не є неперервним, тому $\partial D$ - кусково-гладка границя з порядком гладкості 2. 
+
+Внутрішня задача Діріхле для рівняння Лапласа полягає у знаходженні такої функції $u \in C^2(D), \quad u:D \rightarrow R$  , що задовольняє рівняння:
+\begin{equation}
+\Delta u = 0 \quad в \quad  D
+\end{equation}
+і граничну умову 
+\begin{equation}
+u=f \quad на \quad \partial D
+\end{equation}
+Розв'язок задачі (1) - (2) можна подати у вигляді потенціалу простого шару.
+\begin{equation}
+u(x) = \int_{\partial D} \varphi(y) \Phi(x,y) ds(y)
+\end{equation}
+Тут $\Phi(x,y) = \frac{1}{2\pi} ln\frac{1}{|x-y|}$ - фундаментальний розв'язок рівняння (4) , $\varphi(y)$ - невідома густина. Використовуючи подання (3) , подамо задачу (1) - (2) у наступному вигляді
+
+	\begin{equation}
+	\int_\Gamma \varphi(y) \Phi(x,y) ds(y) = f(x)
+	\end{equation}
+Перед тим, як чисельно розв'язати (4) за допомогою методу квадратур, ми виконаємо спеціальне нелінійне "mesh grading" перетворення.
+
+Для того, щоб це перетворення було можливе потрібно параметризувати інтеграм (4). 
+
+Отже, розглянемо параметризацію  $\bar{z} : [0,2\pi] \ni \partial D$. 
+
+Вводячи кубічний поліном
+
+
+де $g \geq 2$ і встановлюючи
+
+
+ми вводимо "mesh grading" перетворення 
+
+
+тоді  $Y \in C^{q-1}[0,2\pi]$
+
+Тепер розглянемо нову параметризацію границі $\partial D$:
+\begin{equation*}
+z(s) = \tilde{z}(Y(s)), \quad 0\leq \leq 2\pi
+\end{equation*}
+
+Запишемо інтегральне рівняння у параметричній формі: 
+
+\begin{equation}
+\frac{1}{2\pi} \int_0^{2\pi} \psi(\tau) L(s,\tau)d\tau = f(s),
+\end{equation}
+де $s \in [0, \pi]$, функція $f(s) = f(z(s))$ і густина $\psi(s) = \varpi(z(s))  \cdot|z`(s)|$. Ядро $L(s,\tau)$  має наступну форму: 
+\begin{equation*}
+L(s,\tau) = -ln|z(s)- z(\tau)| \quad для s \neq \tau
+\end{equation*}
+У випадку коли $s=\tau$  отримуємо особливість логарифмічного типу в нулі. Перетворимо ядро $L(s,\tau)$ наступним чином 
+
+\begin{equation*}
+L(s,\tau) = -\frac{1}{2}ln \frac{4}{e^2}(cos(s) - cos(\tau))^2 + b(s,\tau)
+\end{equation*}
+де 
+
+\begin{equation}
+b(s,\tau) =\begin{cases}
+ln\frac{2|cos(s) - cos(\tau)|}{e|z(s)-z(\tau)|} , \quad s \neq \tau \\
+ln\frac{2|sin(s)|}{e|z`(s)|}, \quad \quad \quad s =\tau
+\end{cases}
+\end{equation}
+Тут $|z`(s)| > 0$ і видно, що функція $b(s,\tau)$ не є визначена у чотирьох кутах і в центрі квадрату $[0,2\pi] \times [0,2\pi]$  і ми візьмемо це до уваги пізніше.
+
+Звернемо увагу, що :
+\begin{equation*}
+\int_0^{2\pi} \varphi(\tau) ln\frac{4}{e^2} (cos(s) - cos(\tau))^2 d\tau = \\ 2 \int_0^{2\pi} \varphi(\tau)ln(\frac{4}{e}) sin^2 \frac{s-\tau}{2} d\tau, \quad s \in [0,2\pi]
+\end{equation*}
+ Підставимо всі ці формули в (5) 
+ 
+ \begin{equation}
+ \frac{1}{2\pi} \int_0^{2\pi} \psi(\tau) \{ -\frac{1}{2} ln\frac{4}{e} sin^2 \frac{s-\tau}{2} + b(s,\tau)\} d\tau = f(s)
+ \end{equation}
+\subsection{Метод квадратур}
+
+Для чисельного розв'язування інтегрального рівняння (7) застосовуємо метод, що грунтується на тригонометричній інтерполяції з вузлами : 
+\begin{equation}
+s_j = \frac{j\pi}{n}, \quad 0,\dots,2n-1, \quad n \in \mathbb{N}
+\end{equation}
+для яких розглянемо наступні квадратурні формули
+
+\begin{equation}
+\frac{1}{2\pi} \int_0^{2\pi}f(\tau) ln(\frac{4}{e} sin^2 \frac{s-\tau}{2})d\tau \approx \sum_{j=0}^{2n-1}R_j(s)f(s_j)
+\end{equation}
+\begin{equation}
+\frac{1}{2\pi} \int_0^{2\pi}f(\tau)d\tau \approx \frac{1}{2n}\sum_{j=0}^{2n-1}f(s_j),
+\end{equation}
+
+де $R_j(t)$ - вагові функції, що задаються у вигляді:
+\begin{equation*}
+R_j(t) = -\frac{1}{2n}\{1+2\sum_{m=1}^{n-1} \frac{1}{m} cos m(t - t_j) + \frac{cosn(t-t_j)}{n}\}
+\end{equation*}
+Після цього застосувати квадратурне формул (9)-(10), отримаємо дискретне рівняння
 Для чисельного розв'язування інтегрального рівняння , ми використовуємо квадратури Аткінсона. Введемо рівномірну сітку
 
 \begin{equation}
@@ -36,4 +130,3 @@
 \end{equation*}
 
 \end{document}
-
