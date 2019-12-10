@@ -1,11 +1,11 @@
 ﻿using System;
 namespace LIE {
     public class ParametrizationHelper {
-        static double q = 2;
+        static double q = 7;
         static double PI = Math.PI;
 
         public static double Y ( double s ) {
-            if ( s <= PI ) {
+            if ( s < PI ) {
                 return W ( s );
             }
             return PI + W ( s - PI );
