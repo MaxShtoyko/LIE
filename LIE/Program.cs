@@ -1,32 +1,31 @@
 ﻿using System;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
-using MathNet.Numerics.LinearAlgebra.Factorization;
 
 namespace LIE {
     class Program {
         static double PI = Math.PI;
-        static double n = 2;
-        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 7, 7 } );
+        static double n = 1;
+        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 5, 5 } );
 
         static void Main ( string[] args ) {
 
             double generalError = 0;
 
-            for ( int j = 0; j < 6; j++ ) {
+            for ( int j = 0; j < 8; j++ ) {
                 n *= 2;
 
                 var densities = QuadratureMethod ( );
 
                 for ( int i = 1; i < n; i++ ) {
-                    var x1 = i / ( n ) + 1;
-                    var x2 = 0.0;
+                    var x1 = 0.0;
+                    var x2 = i / ( n ) - 0.5;
                     var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
                     var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
                     generalError += Math.Abs ( error );
 
                     Console.WriteLine ( $"Exact: {GetExactResult ( point ) } ----- Approximate {GetApproximateResult ( densities, point )}" );
-                    //Console.WriteLine ( $"(x1,x2) =({Math.Round ( x1, 4 )},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
+                    Console.WriteLine ( $"(x1,x2) =({Math.Round ( x1, 4 )},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
                 }
 
                 Console.WriteLine ( $"n={n}, error={generalError / n}" );
@@ -38,13 +37,12 @@ namespace LIE {
         }
 
         static Vector<double> QuadratureMethod ( ) {
-
             var matrix = Matrix<double>.Build.Dense ( 2 * ( int ) n, 2 * ( int ) n );
-            var b = Vector<double>.Build.Dense ( 2 * ( int ) n );
+            var b = Vector<double>.Build.Dense ( 2 * ( int ) n);
 
             for ( int k = 0; k < 2 * n; k++ ) {
                 for ( int i = 0; i < 2 * n; i++ ) {
-                    matrix[k, i] = GetL1 ( ) * R ( S ( i ), k ) + 1.0 / ( 2 * n ) * B ( S ( i ), S ( k ) );
+                    matrix[k, i] = GetL1 ( ) * R ( S ( k ), i ) + 1.0 / ( 2 * n ) * B ( S ( i ), S ( k ) );
                 }
                 b[k] = GetParametricFunction ( S ( k ) );
             }
@@ -88,21 +86,21 @@ namespace LIE {
             return ( r * -0.5 ) / n;
         }
 
-        static double GetExactResult ( Vector<double> x ) {
-            return 1;
-        }
-
-        static double GetFunction ( Vector<double> x ) {
-            return 1;
-        }
-
         //static double GetExactResult ( Vector<double> x ) {
-        //    return 1.0 / ( 2.0 * PI ) * Math.Log ( 1.0 / ( GetR ( x - y ) ) );
+        //    return 1;
         //}
 
         //static double GetFunction ( Vector<double> x ) {
-        //    return 1.0 / ( 2.0 * PI ) * Math.Log ( 1.0 / ( GetR ( x - y ) ) );
+        //    return 1;
         //}
+
+        static double GetExactResult ( Vector<double> x ) {
+            return 1.0 / ( 2.0 * PI ) * Math.Log ( 1.0 / ( GetR ( x - y ) ) );
+        }
+
+        static double GetFunction ( Vector<double> x ) {
+            return 1.0 / ( 2.0 * PI ) * Math.Log ( 1.0 / ( GetR ( x - y ) ) );
+        }
 
         static double GetParametricFunction ( double s ) {
             return GetFunction ( Z ( s ) );
@@ -112,70 +110,20 @@ namespace LIE {
             return (j * PI) / n;
         }
 
+        //static Vector<double> Z ( double s ) {
+        //    return GetBoudaryFunction ( ParametrizationHelper.Y ( s ) );
+        //}
+
+        //static Vector<double> GetDerivativeOfZ ( double s ) {
+        //    return GetDerivativeOfBoudaryFunction ( ParametrizationHelper.Y ( s ) );
+        //}
+
         static Vector<double> Z ( double s ) {
-            return GetBoudaryFunction (  s  );
+            return GetBoudaryFunction ( s );
         }
 
         static Vector<double> GetDerivativeOfZ ( double s ) {
-            return GetDerivativeOfBoudaryFunction ( s  );
-        }
-
-        ////EXAMPLE
-        //static double GetX1 ( double t ) {
-        //    return 2 * Math.Pow ( Math.Sin ( t ), 2 );
-        //}
-
-        ////EXAMPLE
-        //static double GetX2 ( double t ) {
-        //    return 2 * Math.Cos ( t ) * ( Math.Pow ( Math.Cos ( t ), 2 ) - 1 );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX1 ( double t ) {
-        //    return 4 * Math.Sin ( t ) * Math.Cos ( t );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX2 ( double t ) {
-        //    return 2 * Math.Sin ( t ) * ( 1 - 3 * Math.Pow ( Math.Cos ( t ), 2 ) );
-        //}
-
-        //static double GetX1 ( double t ) {
-        //    return 2 * Math.Pow ( Math.Sin ( t ), 2 );
-        //}
-
-        ////EXAMPLE
-        //static double GetX2 ( double t ) {
-        //    return 2 * ( Math.Cos ( t ) * ( Math.Pow ( Math.Cos ( t ), 2 ) - 1 ) );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX1 ( double t ) {
-        //    return 2 * Math.Sin ( 2 * t );
-        //}
-
-        ////EXAMPLE
-        //static double GetDerivativeOfX2 ( double t ) {
-        //    return 2 * Math.Sin ( t ) * ( 1 - 3 * Math.Pow ( Math.Cos ( t ), 2 ) );
-        //}
-
-        static double GetX1 ( double t ) {
-            return 4.0 / Math.Sqrt ( 3 ) * Math.Sin ( t / 2 );
-        }
-
-        //EXAMPLE
-        static double GetX2 ( double t ) {
-            return -2 * Math.Sin ( t );
-        }
-
-        //EXAMPLE
-        static double GetDerivativeOfX1 ( double t ) {
-            return 2.0 / Math.Sqrt ( 3 ) * Math.Cos ( t / 2 );
-        }
-
-        //EXAMPLE
-        static double GetDerivativeOfX2 ( double t ) {
-            return -2 * Math.Cos ( t );
+            return GetDerivativeOfBoudaryFunction ( s );
         }
 
         // |x(s)|
@@ -183,7 +131,7 @@ namespace LIE {
             return Math.Sqrt ( Math.Pow ( s[0], 2 ) + Math.Pow ( s[1], 2 ) );
         }
 
-        static Vector<double> GetBoudaryFunction (double t) {
+        static Vector<double> GetBoudaryFunction ( double t ) {
             return Vector.Build.DenseOfArray ( new[] { GetX1 ( t ), GetX2 ( t ) } );
         }
 
@@ -194,6 +142,67 @@ namespace LIE {
         static double GetL1 ( ) {
             return -0.5;
         }
+
+        //static double GetX1 ( double t ) {
+        //    return 4.0 / Math.Sqrt ( 3 ) * Math.Sin ( t / 2 );
+        //}
+
+        ////EXAMPLE
+        //static double GetX2 ( double t ) {
+        //    return -2 * Math.Sin ( t );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX1 ( double t ) {
+        //    return 2.0 / Math.Sqrt ( 3.0 ) * Math.Cos ( t / 2 );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX2 ( double t ) {
+        //    return -2 * Math.Cos ( t );
+        //}
+
+
+        //EXAMPLE
+        static double GetX1 ( double t ) {
+            return -2.0 / 3.0 * Math.Sin ( 3 * t / 2 );
+        }
+
+        //EXAMPLE
+        static double GetX2 ( double t ) {
+            return -Math.Sin ( t );
+        }
+
+        //EXAMPLE
+        static double GetDerivativeOfX1 ( double t ) {
+            return - Math.Cos ( 3 * t / 2 );
+        }
+
+        //EXAMPLE
+        static double GetDerivativeOfX2 ( double t ) {
+            return - Math.Cos ( t );
+        }
+
+
+        ////EXAMPLE
+        //static double GetX1 ( double t ) {
+        //    return 2 * Math.Cos ( t );
+        //}
+
+        ////EXAMPLE
+        //static double GetX2 ( double t ) {
+        //    return 4 * Math.Sin ( t );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX1 ( double t ) {
+        //    return -2 * Math.Sin ( t );
+        //}
+
+        ////EXAMPLE
+        //static double GetDerivativeOfX2 ( double t ) {
+        //    return 4 * Math.Cos ( t );
+        //}
 
         //static double B ( double s, double tau ) {
         //    if ( Math.Abs ( s - tau ) < 0.00001  ) {
