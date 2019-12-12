@@ -1,21 +1,24 @@
 ﻿using System;
 namespace LIE {
     public class ParametrizationHelper {
-        static double q = 7;
+        static double q = 3.0;
         static double PI = Math.PI;
 
-        public static double Y ( double s ) {
-            return W ( s );
+        public static double Y ( double x ) {
+            return W ( x );
         }
 
-        private static double V ( double s ) {
-
-            return ( 1.0 / q - PI / 2.0 ) * Math.Pow ( ( PI - s ) / PI, 3 ) - ( 1.0 / q ) * ( ( PI - s ) / PI ) + PI / 2;
+        private static double W ( double x ) {
+            return 2.0 * PI * Math.Pow ( x, q ) / ( Math.Pow ( x, q ) + Math.Pow ( 2.0 * PI - x , q ) );
         }
 
-        private static double W ( double s ) {
+        public static double Ydx ( double x ) {
+            return Wdx ( x );
+        }
 
-            return 2 * PI * Math.Pow ( V ( s ), q ) / ( Math.Pow ( V ( s ), q ) + Math.Pow ( V ( 2 * PI - s ), q ) );
+        private static double Wdx ( double x ) {
+            return 2.0 * PI * ( q * Math.Pow ( x, q - 1 ) * Math.Pow ( 2 * PI - x, q - 1 ) * ( ( 2.0 * PI - x ) + x ) )
+                / Math.Pow ( Math.Pow ( x, q ) + Math.Pow ( 2.0 * PI - x , q ), 2.0 );
         }
     }
 }
