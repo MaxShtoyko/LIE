@@ -6,55 +6,85 @@ namespace LIE {
     class Program {
         static double PI = Math.PI;
         static double n = 2;
-        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 5, 5 } );
+        static Vector<double> y = Vector.Build.DenseOfArray ( new double[] { 6, 6 } );
 
         static void Main ( string[] args ) {
 
-            for ( int j = 0; j < 8; j++ ) {
-                n *= 2;
+            //Console.WriteLine ( "Для першої границі: " );
 
-                var densities = QuadratureMethod ( );
+            //Console.WriteLine ( $"q = {ParametrizationHelper.q}" );
+            //PrintResult ( 1.0, 0.0 );
+            //PrintResult ( 0.75, 0.25 );
 
-                for ( int i = 1; i < n; i++ ) {
-                    var x1 = i/n;
-                    var x2 = 0.0;
-                    var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
-                    var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
+            //ParametrizationHelper.q = 5;
+            //Console.WriteLine ( $"q = {ParametrizationHelper.q}" );
+            //PrintResult ( 1.0, 0.0 );
+            //PrintResult ( 0.75, 0.25 );
 
-                    if(Math.Abs(error) < 0.00001 ) {
-                        Console.WriteLine ( $"n: {n}" );
-                        Console.WriteLine ( $"Exact: {GetExactResult ( point ) } ----- Approximate {GetApproximateResult ( densities, point )}" );
-                        Console.WriteLine ( $"(x1,x2) =({Math.Round ( x1, 4 )},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
-                    }
-                }
+            Console.WriteLine ( "Для другої границі: " );
 
-                //for ( int i = 0; i < 2* n; i++ ) {
-                //    Console.WriteLine ( $"(x1,x2) =({S ( i )}) ---- Error : {ParametrizationHelper.Y ( S ( i ) )}" );
-                //}
+            Console.WriteLine ( $"q = {ParametrizationHelper.q}" );
+            PrintResult ( 0.0, 0.1 );
+            PrintResult ( -0.25, 0.5 );
 
-                //var x1 = 0.0;
-                //var x2 = 0.75;
-                //var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
-                //var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
-
-                //Console.WriteLine ( $"n: {n}" );
-                //Console.WriteLine ( $"Exact: {GetExactResult ( point ) } ----- Approximate {GetApproximateResult ( densities, point )}" );
-                //Console.WriteLine ( $"(x1,x2) =({Math.Round ( x1, 4 )},{Math.Round ( x2, 4 )}) ---- Error : {Math.Abs ( error )}" );
-
-            }
+            Console.WriteLine ( $"\n\n\nq = {ParametrizationHelper.q}" );
+            PrintResult ( 0.0, 0.1 );
+            PrintResult ( -0.25, 0.5 );
 
             Console.ReadKey ( );
         }
 
-        static Vector<double> QuadratureMethod ( ) {
-            var matrix = Matrix<double>.Build.Dense ( 2 * ( int ) n - 1, 2 * ( int ) n - 1 );
-            var b = Vector<double>.Build.Dense ( 2 * ( int ) n - 1 );
 
-            for ( int k = 1; k < 2 * n; k++ ) {
-                for ( int i = 1; i < 2 * n; i++ ) {
-                    matrix[k - 1, i - 1] = GetL1 ( ) * R ( S ( k ), i ) + 1.0 / ( 2 * n ) * B ( S ( i ), S ( k ) );
+        static void PrintResult (double x1, double x2 ) {
+            n = 2;
+
+            Console.WriteLine ( $"\n(x1, x2) = ({ Math.Round ( x1, 4 )},{ Math.Round ( x2, 4 )})" );
+
+            for ( int j = 0; j < 6; j++ ) {
+                n *= 2;
+
+                var densities = QuadratureMethod ( );
+
+                var point = Vector.Build.DenseOfArray ( new double[] { x1, x2 } );
+                var error = GetExactResult ( point ) - GetApproximateResult ( densities, point );
+
+                Console.WriteLine ( $"n: {n}" );
+                Console.WriteLine ( $"Error : {Math.Abs ( error )}" );
+            }
+        }
+        //static Vector<double> QuadratureMethod ( ) {
+        //    var matrix = Matrix<double>.Build.Dense ( 2 * ( int ) n - 1, 2 * ( int ) n - 1 );
+        //    var b = Vector<double>.Build.Dense ( 2 * ( int ) n - 1 );
+
+        //    for ( int k = 1; k < 2 * n; k++ ) {
+        //        for ( int i = 1; i < 2 * n; i++ ) {
+        //            matrix[k - 1, i - 1] = GetL1 ( ) * R ( S ( k ), i ) + 1.0 / ( 2 * n ) * B ( S ( i ), S ( k ) );
+        //        }
+        //        b[k - 1] = GetParametricFunction ( S ( k ) );
+        //    }
+
+        //    return matrix.Solve ( b );
+        //}
+
+        //static double GetApproximateResult ( Vector<double> densities, Vector<double> t ) {
+        //    double result = 0;
+
+        //    for ( int k = 1; k < 2 * n; k++ ) {
+        //        result += densities[k - 1] * Math.Log ( GetR ( t - Z ( S ( k ) ) ) );
+        //    }
+
+        //    return result * -0.5 / n;
+        //}
+
+        static Vector<double> QuadratureMethod ( ) {
+            var matrix = Matrix<double>.Build.Dense ( 2 * ( int ) n, 2 * ( int ) n );
+            var b = Vector<double>.Build.Dense ( 2 * ( int ) n );
+
+            for ( int k = 0; k < 2 * n; k++ ) {
+                for ( int i = 0; i < 2 * n; i++ ) {
+                    matrix[k, i] = GetL1 ( ) * R ( S ( k ), i ) + 1.0 / ( 2 * n ) * B ( S ( i ), S ( k ) );
                 }
-                b[k - 1] = GetParametricFunction ( S ( k ) );
+                b[k] = GetParametricFunction ( S ( k ) );
             }
 
             return matrix.Solve ( b );
@@ -63,8 +93,8 @@ namespace LIE {
         static double GetApproximateResult ( Vector<double> densities, Vector<double> t ) {
             double result = 0;
 
-            for ( int k = 1; k < 2 * n; k++ ) {
-                result += densities[k - 1] * Math.Log ( GetR ( t - Z ( S ( k ) ) ) );
+            for ( int k = 0; k < 2 * n; k++ ) {
+                result += densities[k] * Math.Log ( GetR ( t - Z ( S ( k ) ) ) );
             }
 
             return result * -0.5 / n;
@@ -153,13 +183,16 @@ namespace LIE {
             return -0.5;
         }
 
+
+
+        /////ПЕРША ГРАНИЦЯ
         //static double GetX1 ( double t ) {
         //    return 4.0 / Math.Sqrt ( 3 ) * Math.Sin ( t / 2 );
         //}
 
         ////EXAMPLE
         //static double GetX2 ( double t ) {
-        //    return -2 * Math.Sin ( t );
+        //    return -2.0*Math.Sin ( t );
         //}
 
         ////EXAMPLE
@@ -169,10 +202,10 @@ namespace LIE {
 
         ////EXAMPLE
         //static double GetDerivativeOfX2 ( double t ) {
-        //    return -2 * Math.Cos ( t );
+        //    return -2.0*Math.Cos ( t );
         //}
 
-        //EXAMPLE
+        //ДРУГА ГРАНИЦЯ
         static double GetX1 ( double t ) {
             return -2.0 / 3.0 * Math.Sin ( 3 * t / 2 );
         }
